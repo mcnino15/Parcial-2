@@ -1,4 +1,6 @@
-from collections import defaultdict
+from collections import defaultdict #Proporciona un valor predeterminado cuando se 
+#accede a una clave inexistente en el diccionario, evitando errores KeyError
+# Almacena carga y residuos por ruta en las clases Turno y CentroAcopio..
 
 class Ruta:
     def __init__(self, puntos):
