@@ -1,150 +1,143 @@
-from datetime import datetime
 from collections import defaultdict
-class PuntoGeografico:
-    def __init__(self, latitud: float, longitud: float):
-        self.latitud = latitud
-        self.longitud = longitud
 
-class Carga:
-    def __init__(self, id_carga: int, vidrio: float, papel: float, plastico: float, metal: float, material_organico: float):
-        self.id_carga = id_carga
-        self.vidrio = vidrio
-        self.papel = papel
-        self.plastico = plastico
-        self.metal = metal
-        self.material_organico = material_organico
 class Ruta:
-    def __init__(self, info_ruta: int, puntos: list[PuntoGeografico]):
-        self.info_ruta = info_ruta #una variable de instancia que almacena el valor del argumento info_ruta pasado al constructor.
-        self.puntos = puntos # una variable de instancia que almacena el valor del argumento puntos pasado al constructor, que debe ser una lista de objetos de la clase PuntoGeografico.
-    
-class Turno:
-    def __init__(self, info_turno: int, camion: str, conductor: str, asistente1: str, asistente2: str, ruta: Ruta, fecha_inicio: datetime, fecha_fin: datetime, tiempo: int):
-        self.info_turno = info_turno
-        self.camion = camion
-        self.conductor = conductor
+    def __init__(self, puntos):
+        self.puntos = puntos # Lista de puntos geográficos que componen la ruta
+
+
+class Camion:
+    def __init__(self, conductor, asistente1, asistente2, ruta):
+        self.conductor = conductor # Objeto que representa al conductor
         self.asistente1 = asistente1
         self.asistente2 = asistente2
-        self.ruta = ruta
-        self.fecha_inicio = fecha_inicio
-        self.fecha_fin = fecha_fin
-        self.tiempo = tiempo
-        self.carga = None
+        self.ruta = ruta     #Indica la ruta asignada al camión
 
-    def set_carga(self, carga: Carga): #es un método que acepta un argumento carga del tipo Carga y establece el valor de la variable de instancia self.carga con el valor de carga
-        self.carga = carga
 
-    def get_carga(self): #get_carga es un método que no acepta argumentos y simplemente devuelve el valor de la variable de instancia self.carga. 
-    #Es decir, retorna el valor de la variable carga dentro del objeto (instancia) de la clase.
-        return self.carga
-class TrashCity: 
+class Persona:
+    def __init__(self, nombre, identificacion):
+        self.nombre = nombre
+        self.identificacion = identificacion
+
+
+class Turno:
+    def __init__(self, camion, inicio, fin):
+        self.camion = camion # Representa el camión asignado al turno
+        self.inicio = inicio  # Fecha y hora de inicio del turno
+        self.fin = fin  # Fecha y hora de finalización del turno
+        self.localizaciones = []  # Lista de localizaciones del camión durante el turno
+        self.carga_por_ruta = defaultdict(lambda: defaultdict(float))  # Diccionario para almacenar la carga de residuos por ruta
+
+    def agregar_localizacion(self, latitud, longitud, tiempo):
+        self.localizaciones.append((latitud, longitud, tiempo)) # Agrega una localización a la lista de localizaciones del turno
+
+    def clasificar_carga(self, ruta_actual, vidrio, papel, plastico, metal, organicos):
+        ruta_actual += 1 # Incrementa el número de la ruta actual en 1 para que no comience en 0
+        self.carga_por_ruta[ruta_actual]['vidrio'] += vidrio
+        self.carga_por_ruta[ruta_actual]['papel'] += papel
+        self.carga_por_ruta[ruta_actual]['plastico'] += plastico
+        self.carga_por_ruta[ruta_actual]['metal'] += metal
+        self.carga_por_ruta[ruta_actual]['organicos'] += organicos
+         # Agrega la cantidad de residuo a la carga de residuos de la ruta actual
+
+class CentroAcopio:
     def __init__(self):
-     self.registro_turnos = []
+        self.registro_turnos = [] # Lista para almacenar los turnos registrados en el centro de acopio
 
     def recibir_turno(self, turno):
-        self.registro_turnos.append(turno)
+        self.registro_turnos.append(turno)  # Agrega un turno al registro de turnos del centro de acopio
 
     def obtener_total_residuos(self):
-        total_carga = defaultdict(float)
+        total_carga = defaultdict(float)  # Diccionario para almacenar la cantidad total de cada tipo de residuo
 
         for turno in self.registro_turnos:
             for ruta, carga in turno.carga_por_ruta.items():
                 for tipo_residuo, cantidad in carga.items():
-                    total_carga[tipo_residuo] += cantidad
+                    total_carga[tipo_residuo] += cantidad  # Acumula la cantidad de residuos por tipo en el diccionario total_carga
 
-        return total_carga
+
+        return total_carga  # Devuelve el diccionario con la cantidad total de residuos por tipo
 
     def obtener_residuos_por_ruta(self):
-        residuos_por_ruta = defaultdict(lambda: defaultdict(float))
+        residuos_por_ruta = defaultdict(lambda: defaultdict(float))  # Diccionario anidado para almacenar la cantidad de residuos por ruta
 
         for turno in self.registro_turnos:
-            ruta = turno.camion.ruta
-            carga_por_ruta = turno.carga_por_ruta
+            ruta = turno.camion.ruta # Obtiene la ruta asignada al camión del turno actual
+            carga_por_ruta = turno.carga_por_ruta # Obtiene la carga de residuos por ruta del turno actual
 
-            for ruta, carga in carga_por_ruta.items():
-                residuos = residuos_por_ruta[ruta]
+            for ruta, carga in carga_por_ruta.items(): # Obtiene el diccionario de residuos correspondiente a la ruta actual
+                residuos = residuos_por_ruta[ruta]  
 
-                for tipo_residuo, cantidad in carga.items():
+                for tipo_residuo, cantidad in carga.items(): # Acumula la cantidad de residuos por tipo en el diccionario de residuos de la ruta actual
                     residuos[tipo_residuo] += cantidad
 
         return residuos_por_ruta
-from datetime import datetime
 
 
-punto1 = PuntoGeografico(9.123603, -75.581242)
-punto2 = PuntoGeografico(9.157315, -75.574897)
-punto3 = PuntoGeografico(9.179732, -75.586095)
+# <Implementación
+conductor1 = Persona("Sebastian Rullo", "973164503")
+asistente11 = Persona("Marina Guerrero", "730102456")
+asistente12 = Persona("Nicolas Miranda", "103279450")
+ruta1 = Ruta([(40.7128, -74.0060), (40.7394, -73.9881), (40.7580, -73.9855)])
 
-ruta1 = Ruta(1, [punto1, punto2, punto3])
-carga_vidrio1 = Carga(1, 1.5, 2.5, 1.0, 2.5, 2.0) # valores de la carga del vidrio
-carga1p = Carga(2, 0.5, 1.5, 1.2, 0.8, 1)  # valores de la carga del papel
-carga1pl = Carga(0.5, 0.2, 0.1, 0.4, 0.3, 0.2) # valores de la carga del plastico
-carga1m = Carga(2, 1.2, 1.0, 2.0, 1.1, 0.2)
-carga1_material = Carga(0.2, 0.4, 0.5, 0.5,1,0.6)
-turno1 = Turno(1, "Camión 1", "Brian lopez", "Nicolas Rodriguez", None, ruta1, datetime(2023, 5, 19, 7, 0, 0), datetime(2023, 4, 1, 11, 0, 0), 4*60)
-#Es el noveno argumento que se pasa al constructor de la clase Turno y representa la duración máxima en minutos del turno. En este caso se establece como 4 horas multiplicadas por 60 minutos, lo que resulta en 240 minutos, es decir, 4 horas de duración para el turno.
-turno1.set_carga(carga_vidrio1)
-turno1.set_carga(carga1p)
-turno1.set_carga(carga1pl)
-turno1.set_carga(carga1m)
-turno1.set_carga(carga1_material)
+camion1 = Camion(conductor1, asistente11, asistente12, ruta1)
 
-punto3 = PuntoGeografico(9.123603, -75.581242)
-punto4 = PuntoGeografico(9.157315, -75.574897)
-punto5 = PuntoGeografico(9.179732, -75.586095)
-ruta2 = Ruta(2, [punto3, punto4, punto5])
-carga_vidrio2 = Carga(2, 1.0, 2.0, 2.5, 1.5, 3.0)
-carga2p = Carga(3, 1, 2.3, 0.1, 1, 0.2)
-carga2pl = Carga(0.1, 1, 0.3, 0.2, 1, 0.5)
-carga2m = Carga(3, 1.0, 2.0, 2.5, 0.5, 3.0)
-carga2_material = Carga (0.9, 0.5, 0.1, 0.8, 0.6, 0.4)
-turno2 = Turno(2, "Camión 2", "Pedro", "Santana", "Martin", ruta2, datetime(2023, 5, 19, 12, 0, 0), datetime(2023, 4, 1, 17, 0, 0), 4*60)
-turno2.set_carga(carga_vidrio2)
-turno2.set_carga(carga2p)
-turno2.set_carga(carga2pl)
-turno2.set_carga(carga2m)
-turno2.set_carga(carga2_material)
-trash_city = TrashCity()
-trash_city.turnos.append(turno1)
-trash_city.turnos.append(turno2)
+inicio_turno1 = "2023-05-19 08:00:00"  # Ejemplo de fecha y hora de inicio del turno
+fin_turno1 = "2023-05-19 12:00:00"  # Ejemplo de fecha y hora de finalización del turno
 
-fecha = datetime(2023, 5, 19)
-vidrio_recolectado = trash_city.calcular_vidrio_recolectado(fecha)
-papel_recolectado = trash_city.calcular_papel_recolectado(fecha)
-plastico_recolectado = trash_city.calcular_plastico_recolectado(fecha)
-metal_recolectado = trash_city.calcular_metal_recolectado(fecha)
-material_recolectado = trash_city.calcular_material_recolectado(fecha)
-print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+turno1 = Turno(camion1, inicio_turno1, fin_turno1)
+turno1.agregar_localizacion(40.7128, -74.0060, "2023-05-19 08:30:00")
+turno1.agregar_localizacion(40.7394, -73.9881, "2023-05-19 10:15:00")
+turno1.clasificar_carga(0, 10, 20, 15, 5, 8)
+turno1.clasificar_carga(1, 8, 15, 12, 3, 6)
+
+centro_acopio = CentroAcopio()
+centro_acopio.recibir_turno(turno1)
+
+# Cálculo y visualización de los resultados
+total_residuos = centro_acopio.obtener_total_residuos()
+residuos_por_ruta = centro_acopio.obtener_residuos_por_ruta()
+
+# Menú
 print("Bienvenido a TrashCity")
 while True:
     print ("¿Que desea hacer?")
-    print("1. Ver total de vidrio recolectado")
-    print("2. Ver total de papel recolectado")
-    print ("3. Ver total de plastico recolectado")
-    print ("4. Ver total de metal recolectado")
-    print ("5. Ver total de material recolectado")
-    print ("6. Salir")
-    option =  input("Ingresa tu opción (1, 2, 3 , 4, 5, 6): ")
-    print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+    print("1. Ver total de residuos recolectados")
+    print("2. Ver los residuos por ruta")
+    print ("3. Ver los detalles de las rutas")
+    print ("4. Salir")
+    print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
+    option =  input("Ingresa tu opción (1, 2, 3, 4) : ")
+    print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
     if option == "1":
-        print(f"El total de vidrio recolectado el {fecha.date()} fue de {vidrio_recolectado} toneladas")
-        print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+      print("Total de residuos recolectados:")
+      for tipo_residuo, cantidad in total_residuos.items(): # Recorre el diccionario de residuos totales
+        print(f"{tipo_residuo}: {cantidad} toneladas")
+      print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
     elif option == "2":
-         print(f"El total de papel recolectado el {fecha.date()} fue de {papel_recolectado} toneladas")
-         print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+      print("\nResiduos recolectados por ruta:")
+      for ruta, residuos in residuos_por_ruta.items(): # Recorre el diccionario de residuos por ruta
+       print(f"Ruta {ruta}:")
+       for tipo_residuo, cantidad in residuos.items(): # Recorre el diccionario de residuos por tipo en la ruta actual
+        print(f"{tipo_residuo}: {cantidad} toneladas")  # Imprime el tipo de residuo y su cantidad correspondiente
+      print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
     elif option == "3":
-         print(f"El total de plastico recolectado el {fecha.date()} fue de {plastico_recolectado} toneladas")
-         print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
-    elif option == "4":
-         print(f"El total de metal recolectado el {fecha.date()} fue de {metal_recolectado} toneladas")
-         print(f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
-    elif option == "5":
-         print(f"El total de material organico recolectado el {fecha.date()} fue de {material_recolectado} toneladas")
-         print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
-    elif option == "6":
-         print("Gracias por usar nuestro servicios ¡Chauuuuuu!")
-         print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
-         break 
+      print("\nInformación de las rutas:")
+      for turno in centro_acopio.registro_turnos: # Recorre la lista de turnos registrados en el centro de acopio
+        camion = turno.camion
+        ruta = camion.ruta
+        print(f"\nRuta: {ruta}")
+        print(f"Conductor: {camion.conductor.nombre}")
+        print(f"Asistente 1: {camion.asistente1.nombre}")
+        print(f"Asistente 2: {camion.asistente2.nombre}")
+        print("Puntos geográficos:")
+        for punto in ruta.puntos: # Recorre los puntos geográficos de la ruta actual
+         latitud, longitud = punto
+         print(f"Latitud: {latitud}, Longitud: {longitud}")
+      print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
+    elif option == "4":     
+     print("Gracias por usar nuestro servicios ¡Chauuuuuu!")
+     print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
+     break 
     else:
         print("Opción no válida, por favor intenta de nuevo.")
-        print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+        print(f"‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵‿︵")
