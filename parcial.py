@@ -1,4 +1,5 @@
 from datetime import datetime
+from collections import defaultdict
 class PuntoGeografico:
     def __init__(self, latitud: float, longitud: float):
         self.latitud = latitud
@@ -37,106 +38,36 @@ class Turno:
     #Es decir, retorna el valor de la variable carga dentro del objeto (instancia) de la clase.
         return self.carga
 class TrashCity: 
-
     def __init__(self):
-        self.turnos = []
+     self.registro_turnos = []
 
-    def calcular_vidrio_recolectado(self, fecha: datetime) -> float: #Se crea una variable total_vidrio_recolectado
-        total_vidrio_recolectado = 0.0 # se inicializa con el valor 0.0. 
-        #Esta variable será utilizada para almacenar la cantidad total de vidrio recolectado en la fecha especificada
-        carga_dia = {} #Se crea un diccionario vacío llamado carga_dia que se utilizará para almacenar la carga de vidrio recolectado para cada día.
+    def recibir_turno(self, turno):
+        self.registro_turnos.append(turno)
 
-        for turno in self.turnos:
-            if turno.fecha_inicio.date() == fecha.date():
-                carga_turno = turno.get_carga()
-                #Para cada objeto Turno en la lista self.turnos, se verifica si la fecha de inicio del turno (turno.fecha_inicio) es igual a la fecha especificada (fecha). 
-                #Esto se hace comparando solo las fechas sin tener en cuenta la hora, utilizando el método date() de los objetos datetime.
-                if fecha.date() not in carga_dia:
-                    carga_dia[fecha.date()] = carga_turno.vidrio
-                    #Si la fecha de inicio del turno coincide con la fecha especificada, 
-                    #se obtiene la carga de vidrio recolectado para ese turno utilizando el método get_carga() del objeto Turno. 
-                    #La cantidad de vidrio recolectado se obtiene accediendo al atributo vidrio del objeto de carga.
-                else:
-                    carga_dia[fecha.date()] += carga_turno.vidrio
-                    #Se actualiza el diccionario carga_dia con la cantidad de vidrio recolectado para ese día. 
-                    #Si el día aún no existe en el diccionario, se crea una nueva entrada con la fecha como clave y la cantidad de vidrio recolectado como valor. 
-                    #Si el día ya existe en el diccionario, se suma la cantidad de vidrio recolectado al valor existente.
+    def obtener_total_residuos(self):
+        total_carga = defaultdict(float)
 
-        if fecha.date() in carga_dia: #Después de iterar a través de todos los turnos, se verifica si la fecha especificada está presente en el diccionario carga_dia.
-            total_vidrio_recolectado = carga_dia[fecha.date()]
-            #Si la fecha está presente en el diccionario, se actualiza la variable total_vidrio_recolectado con el valor de la cantidad de vidrio recolectado para esa fecha.
-        return total_vidrio_recolectado
-    
-    def calcular_papel_recolectado(self, fecha: datetime) -> float: 
-        total_papel_recolectado = 0.0  
-        carga_dia = {} 
+        for turno in self.registro_turnos:
+            for ruta, carga in turno.carga_por_ruta.items():
+                for tipo_residuo, cantidad in carga.items():
+                    total_carga[tipo_residuo] += cantidad
 
-        for turno in self.turnos:
-            if turno.fecha_inicio.date() == fecha.date():
-                carga_turno = turno.get_carga()
-                #Para cada objeto Turno en la lista self.turnos, se verifica si la fecha de inicio del turno (turno.fecha_inicio) es igual a la fecha especificada (fecha). 
-                #Esto se hace comparando solo las fechas sin tener en cuenta la hora, utilizando el método date() de los objetos datetime.
-                if fecha.date() not in carga_dia:
-                    carga_dia[fecha.date()] = carga_turno.papel
-                    #Si la fecha de inicio del turno coincide con la fecha especificada, 
-                    #se obtiene la carga de papel recolectado para ese turno utilizando el método get_carga() del objeto Turno. 
-                    #La cantidad de papel recolectado se obtiene accediendo al atributo vidrio del objeto de carga.
-                else:
-                    carga_dia[fecha.date()] += carga_turno.papel
-                    #Se actualiza el diccionario carga_dia con la cantidad de papel recolectado para ese día. 
-                    #Si el día aún no existe en el diccionario, se crea una nueva entrada con la fecha como clave y la cantidad de vidrio recolectado como valor. 
-                    #Si el día ya existe en el diccionario, se suma la cantidad de papel recolectado al valor existente.
+        return total_carga
 
-        if fecha.date() in carga_dia: #Después de iterar a través de todos los turnos, se verifica si la fecha especificada está presente en el diccionario carga_dia.
-            total_papel_recolectado = carga_dia[fecha.date()]
-            #Si la fecha está presente en el diccionario, se actualiza la variable total_vidrio_recolectado con el valor de la cantidad de vidrio recolectado para esa fecha.
-        return total_papel_recolectado
-    #se utiliza datetime para crear objetos datetime que representan fechas y horas específicas, como la fecha y hora de inicio y fin de los turnos de recolección de basura.
+    def obtener_residuos_por_ruta(self):
+        residuos_por_ruta = defaultdict(lambda: defaultdict(float))
 
-    def calcular_plastico_recolectado(self, fecha: datetime) -> float: 
-        total_plastico_recolectado = 0.0  
-        carga_dia = {} 
-        for turno in self.turnos:
-            if turno.fecha_inicio.date() == fecha.date():
-                carga_turno = turno.get_carga()  
-                if fecha.date() not in carga_dia:
-                    carga_dia[fecha.date()] = carga_turno.plastico  
-                else:
-                    carga_dia[fecha.date()] += carga_turno.plastico
-             
-        if fecha.date() in carga_dia:
-            total_plastico_recolectado = carga_dia[fecha.date()] 
-        return total_plastico_recolectado
-    
-    def calcular_metal_recolectado(self, fecha: datetime) -> float: 
-        total_metal_recolectado = 0.0  
-        carga_dia = {} 
-        for turno in self.turnos:
-            if turno.fecha_inicio.date() == fecha.date():
-                carga_turno = turno.get_carga()  
-                if fecha.date() not in carga_dia:
-                    carga_dia[fecha.date()] = carga_turno.metal 
-                else:
-                    carga_dia[fecha.date()] += carga_turno.metal
-             
-        if fecha.date() in carga_dia:
-            total_metal_recolectado = carga_dia[fecha.date()] 
-        return total_metal_recolectado
-    
-    def calcular_material_recolectado(self, fecha: datetime) -> float: #material organico
-        total_material_recolectado = 0.0  
-        carga_dia = {} 
-        for turno in self.turnos:
-            if turno.fecha_inicio.date() == fecha.date():
-                carga_turno = turno.get_carga()  
-                if fecha.date() not in carga_dia:
-                    carga_dia[fecha.date()] = carga_turno.material_organico
-                else:
-                    carga_dia[fecha.date()] += carga_turno.material_organico
-             
-        if fecha.date() in carga_dia:
-            total_material_recolectado = carga_dia[fecha.date()] 
-        return total_material_recolectado
+        for turno in self.registro_turnos:
+            ruta = turno.camion.ruta
+            carga_por_ruta = turno.carga_por_ruta
+
+            for ruta, carga in carga_por_ruta.items():
+                residuos = residuos_por_ruta[ruta]
+
+                for tipo_residuo, cantidad in carga.items():
+                    residuos[tipo_residuo] += cantidad
+
+        return residuos_por_ruta
 from datetime import datetime
 
 
@@ -207,6 +138,7 @@ while True:
     elif option == "4":
          print(f"El total de metal recolectado el {fecha.date()} fue de {metal_recolectado} toneladas")
          print(f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
+    elif option == "5":
          print(f"El total de material organico recolectado el {fecha.date()} fue de {material_recolectado} toneladas")
          print (f"﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏﹏")
     elif option == "6":
